@@ -51,9 +51,22 @@ export async function ingestUser(username: string): Promise<IngestionResult> {
             );
             result.developersAdded++;
 
-            // 3. Fetch user's repositories (all-time contributions)
-            const repos = await getAllTimeContributedRepos(username, 0); // Get all, no star minimum
-            console.log(`[Ingestion] Found ${repos.length} repos for ${username}`);
+            // 3. Fetch user's repositories (all-time contributions + owned)
+            const contributedRepos = await getAllTimeContributedRepos(username, 0); // Get all, no star minimum
+            const ownedRepos = await getUserRepos(username, 100, 0); // Get top 100 owned/recent
+
+            // Merge and deduplicate
+            const repos = [...contributedRepos];
+            const seenIds = new Set(repos.map(r => r.githubId));
+
+            for (const repo of ownedRepos) {
+                if (!seenIds.has(repo.githubId)) {
+                    repos.push(repo);
+                    seenIds.add(repo.githubId);
+                }
+            }
+
+            console.log(`[Ingestion] Found ${repos.length} unique repos for ${username} (contributed: ${contributedRepos.length}, owned/recent: ${ownedRepos.length})`);
 
             for (const repo of repos) {
                 // Create repository node
