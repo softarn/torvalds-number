@@ -11,12 +11,56 @@ export default function NumberDisplay({ number, username }: NumberDisplayProps) 
         return 'from-orange-400 to-red-500';
     };
 
+    const messages: Record<string, string[]> = {
+        '1': [
+            'You practically share a desk with Linus! 🔥',
+            'One repo away? Are you a kernel maintainer? 🐧',
+            'Direct collaborator status achieved!',
+            'Linus probably knows your code!',
+            'The inner circle welcomes you! 🎉',
+        ],
+        '2': [
+            'Two hops to the legend. Impressive! 🌟',
+            'So close you can almost smell the kernel.',
+            'Just one developer between you and greatness!',
+            "You're in elite company here.",
+            'Linux royalty is within reach! 👑',
+        ],
+        '3': [
+            'Three degrees of Torvalds separation!',
+            "Not bad! You're well connected.",
+            'The open source force is strong with you.',
+            'A solid path to the top! 💪',
+            "You're closer than most developers!",
+        ],
+        '4': [
+            'Four repos away. Still in the neighborhood!',
+            'A respectable Torvalds Number.',
+            "You've got open source street cred.",
+            "Keep contributing, you're doing great!",
+            'The path to Linus is clear! 🛤️',
+        ],
+        '5': [
+            'Five degrees! The Kevin Bacon of code.',
+            'Halfway across the open source world.',
+            'A journey of a thousand commits!',
+            'Connected through the community. 🤝',
+            'Open source brings us all together!',
+        ],
+        'high': [
+            'Connected through the vast open source web!',
+            'A long but meaningful path to Linus.',
+            'Every contribution counts! Keep going. 🚀',
+            'The open source community connects us all.',
+            'Your journey through GitHub is unique! ✨',
+        ],
+    };
+
     const getMessage = (n: number) => {
-        if (n === 1) return 'Amazingly close! Direct collaborator through shared repos.';
-        if (n === 2) return 'Impressive! Only two degrees from Linus Torvalds.';
-        if (n <= 3) return 'Great connection! Well within the inner circle.';
-        if (n <= 5) return 'Solid GitHub presence with a path to Linus.';
-        return 'Connected to Linus through the open source community!';
+        const key = n <= 5 ? String(n) : 'high';
+        const options = messages[key];
+        const randomIndex = Math.floor(Math.random() * options.length);
+        return options[randomIndex];
     };
 
     return (
