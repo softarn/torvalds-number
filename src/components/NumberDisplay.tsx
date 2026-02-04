@@ -22,7 +22,7 @@ export default function NumberDisplay({ number, username }: NumberDisplayProps) 
     return (
         <div className="text-center">
             <p className="text-sm uppercase tracking-widest text-gray-400 mb-2">
-                {username}&apos;s Thorvalds Number
+                {username}&apos;s Torvalds Number
             </p>
             <div className={`inline-block text-8xl md:text-9xl font-black bg-gradient-to-br ${getNumberColor(number)} bg-clip-text text-transparent drop-shadow-2xl`}>
                 {number}

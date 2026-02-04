@@ -8,7 +8,7 @@ export default function HomePage() {
             <div className="text-center mb-12">
                 <h1 className="text-5xl md:text-7xl font-black mb-4">
                     <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                        Thorvalds
+                        Torvalds
                     </span>
                     <br />
                     <span className="text-white">Number</span>

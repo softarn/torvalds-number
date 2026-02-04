@@ -2,11 +2,11 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-    title: 'Thorvalds Number',
+    title: 'Torvalds Number',
     description: 'Calculate your degrees of separation from Linus Torvalds on GitHub',
     keywords: ['GitHub', 'Linus Torvalds', 'open source', 'developers', 'six degrees'],
     openGraph: {
-        title: 'Thorvalds Number',
+        title: 'Torvalds Number',
         description: 'Calculate your degrees of separation from Linus Torvalds on GitHub',
         type: 'website',
     },

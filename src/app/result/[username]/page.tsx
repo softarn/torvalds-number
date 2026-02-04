@@ -115,11 +115,11 @@ export default function ResultPage() {
 
             {/* Share Section */}
             <div className="mt-16 text-center">
-                <p className="text-gray-500 mb-4">Share your Thorvalds Number</p>
+                <p className="text-gray-500 mb-4">Share your Torvalds Number</p>
                 <div className="flex justify-center gap-4">
                     <button
                         onClick={() => {
-                            const text = `My Thorvalds Number is ${result.number}! How close are you to Linus Torvalds?`;
+                            const text = `My Torvalds Number is ${result.number}! How close are you to Linus Torvalds?`;
                             navigator.clipboard.writeText(text);
                         }}
                         className="px-4 py-2 rounded-lg bg-gray-800 text-gray-300 hover:bg-gray-700 transition-colors text-sm"

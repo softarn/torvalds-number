@@ -48,7 +48,7 @@ export default function SearchForm() {
                             Calculating...
                         </span>
                     ) : (
-                        'Calculate Thorvalds Number'
+                        'Calculate Torvalds Number'
                     )}
                 </button>
             </div>

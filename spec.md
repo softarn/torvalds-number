@@ -1,7 +1,7 @@
-# Project Specification: Thorvalds Number
+# Project Specification: Torvalds Number
 
 ## 1. Overview
-The **Thorvalds Number** is a web application that calculates the "degrees of separation" between any GitHub user and **Linus Torvalds** based on shared repository contributions.
+The **Torvalds Number** is a web application that calculates the "degrees of separation" between any GitHub user and **Linus Torvalds** based on shared repository contributions.
 
 ## 2. Technical Stack
 - **Database:** Neo4j (Graph Database), hosted on Neo4j Aura or self-hosted.
@@ -33,7 +33,7 @@ The graph is designed to find paths between developers via their shared work.
 
 ### Dos
 - **Undirected Pathfinding:** While relationships are stored as directed (Dev -> Repo), the pathfinding logic must treat the graph as undirected to find links between developers sharing a repository.
-- **Defining the "Number":** The Thorvalds Number is defined as the total number of Repository nodes in the shortest path between the user and Linus Torvalds.
+- **Defining the "Number":** The Torvalds Number is defined as the total number of Repository nodes in the shortest path between the user and Linus Torvalds.
 - **Crawler Stop Condition:** The ingestion script must stop once the database reaches 200,000 nodes (combined total of Developers and Repositories).
 - **Prioritize Quality Data:** Use BFS starting from `torvalds`. Filter for repositories with at least 1,000 stars.
 - **Visual Path Logic:** UI must display the sequence: `User -> [Facts] -> Repo -> [Facts] -> User...` until `torvalds`.
@@ -70,7 +70,7 @@ The graph is designed to find paths between developers via their shared work.
 - **`PathVisualization`**: Renders the developer-repo-developer chain.
 - **`DeveloperNode`**: Displays developer information with GitHub avatar.
 - **`RepositoryNode`**: Displays repository information with contribution facts.
-- **`NumberDisplay`**: Shows the calculated Thorvalds Number prominently.
+- **`NumberDisplay`**: Shows the calculated Torvalds Number prominently.
 
 #### Styling
 - Use **Tailwind CSS** or **CSS Modules** for styling.

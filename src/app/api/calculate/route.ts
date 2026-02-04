@@ -36,7 +36,7 @@ export async function POST(request: Request): Promise<NextResponse<CalculateResp
             const pathRecord = result.records[0].get('path') as Path;
             const pathSteps = convertPathToSteps(pathRecord);
 
-            // The Thorvalds Number is the count of Repository nodes in the path
+            // The Torvalds Number is the count of Repository nodes in the path
             const thorvaldsNumber = pathSteps.filter(step => step.type === 'repository').length;
 
             return NextResponse.json({
