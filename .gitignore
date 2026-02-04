@@ -1,0 +1,21 @@
+# Environment
+.env
+data/
+
+# Python
+__pycache__/
+*.py[cod]
+venv/
+.venv/
+
+# Java
+backend/target/
+*.class
+*.jar
+*.log
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.DS_Store
