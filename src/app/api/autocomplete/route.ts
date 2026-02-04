@@ -14,14 +14,29 @@ export async function GET(request: Request): Promise<NextResponse<AutocompleteRe
     const session = driver.session();
 
     try {
-        const result = await session.run(
-            `MATCH (d:Developer)
-             WHERE toLower(d.username) STARTS WITH $query
-             RETURN d.username AS username
-             ORDER BY d.username
-             LIMIT 3`,
-            { query }
-        );
+        let result;
+        try {
+            // Try using the fulltext index first for better performance
+            result = await session.run(
+                `CALL db.index.fulltext.queryNodes("developer_usernames", $query + "*")
+                 YIELD node, score
+                 RETURN node.username AS username
+                 ORDER BY username
+                 LIMIT 3`,
+                { query }
+            );
+        } catch (error) {
+            // Fallback to standard query if index is missing or other error
+            console.warn('Fulltext search failed, falling back to standard query:', error);
+            result = await session.run(
+                `MATCH (d:Developer)
+                 WHERE toLower(d.username) STARTS WITH $query
+                 RETURN d.username AS username
+                 ORDER BY d.username
+                 LIMIT 3`,
+                { query }
+            );
+        }
 
         const suggestions = result.records.map(record => record.get('username') as string);
 

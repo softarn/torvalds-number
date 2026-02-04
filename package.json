@@ -6,7 +6,8 @@
         "dev": "next dev",
         "build": "next build",
         "start": "next start",
-        "lint": "next lint"
+        "lint": "next lint",
+        "setup-db": "npx tsx src/lib/setup-db.ts"
     },
     "dependencies": {
         "@vercel/analytics": "^1.6.1",

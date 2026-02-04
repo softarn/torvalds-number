@@ -17,6 +17,10 @@ export function getNeo4jDriver(): Driver {
     return driver;
 }
 
+export function setMockDriver(mockDriver: Driver) {
+    driver = mockDriver;
+}
+
 export async function closeDriver(): Promise<void> {
     if (driver) {
         await driver.close();
