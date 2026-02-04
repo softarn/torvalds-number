@@ -2,6 +2,8 @@
 
 Calculate your "degrees of separation" from Linus Torvalds through shared GitHub repository contributions.
 
+> 🎯 **Developed using Spec Driven Development (SDD)** at [JFokus 2026](https://www.jfokus.se/), inspired by sessions on SDD and Neo4j.
+
 ## Quick Start
 
 ### 1. Install Dependencies
