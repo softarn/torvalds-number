@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getNeo4jDriver } from '@/lib/neo4j';
+import { ingestUser } from '@/lib/ingestion';
 import { PathStep, CalculateResponse, CalculateErrorResponse, Developer, Repository, ContributionFacts } from '@/lib/types';
 import { Node, Relationship, Path } from 'neo4j-driver';
 
@@ -14,47 +15,70 @@ export async function POST(request: Request): Promise<NextResponse<CalculateResp
 
         const normalizedUsername = username.toLowerCase().trim();
 
-        const driver = getNeo4jDriver();
-        const session = driver.session();
+        // Try to find path
+        let pathResult = await findShortestPath(normalizedUsername);
 
-        try {
-            // Query for shortest path treating the graph as undirected with case-insensitive matching
-            const result = await session.run(
-                `MATCH (start:Developer), (end:Developer)
-                WHERE toLower(start.username) = toLower($username) 
-                AND toLower(end.username) = 'torvalds'
-                MATCH path = shortestPath((start)-[:CONTRIBUTED_TO*..50]-(end))
-                RETURN path`,
-                { username: normalizedUsername }
-            );
+        // If no path found, try to ingest user data and retry
+        if (!pathResult) {
+            console.log(`[Calculate] No path found for ${normalizedUsername}, attempting ingestion...`);
 
-            if (result.records.length === 0) {
-                return NextResponse.json(
-                    { error: `No path found between "${username}" and torvalds. The user may not be in our database.` },
-                    { status: 404 }
-                );
+            const ingestionResult = await ingestUser(normalizedUsername);
+
+            if (ingestionResult.success) {
+                console.log(`[Calculate] Ingestion complete, retrying path search...`);
+                pathResult = await findShortestPath(normalizedUsername);
+            } else {
+                console.log(`[Calculate] Ingestion failed: ${ingestionResult.error}`);
             }
-
-            const pathRecord = result.records[0].get('path') as Path;
-            const pathSteps = convertPathToSteps(pathRecord);
-
-            // The Torvalds Number is the count of Repository nodes in the path
-            const thorvaldsNumber = pathSteps.filter(step => step.type === 'repository').length;
-
-            return NextResponse.json({
-                number: thorvaldsNumber,
-                path: pathSteps,
-                username: normalizedUsername,
-            });
-        } finally {
-            await session.close();
         }
+
+        if (!pathResult) {
+            return NextResponse.json(
+                { error: `No path found between "${username}" and torvalds. The user may not be in our database or not connected to Torvalds.` },
+                { status: 404 }
+            );
+        }
+
+        const pathSteps = convertPathToSteps(pathResult);
+
+        // The Torvalds Number is the count of Repository nodes in the path
+        const thorvaldsNumber = pathSteps.filter(step => step.type === 'repository').length;
+
+        return NextResponse.json({
+            number: thorvaldsNumber,
+            path: pathSteps,
+            username: normalizedUsername,
+        });
     } catch (error) {
         console.error('Error calculating path:', error);
         return NextResponse.json(
             { error: 'An error occurred while calculating the path' },
             { status: 500 }
         );
+    }
+}
+
+async function findShortestPath(username: string): Promise<Path | null> {
+    const driver = getNeo4jDriver();
+    const session = driver.session();
+
+    try {
+        const result = await session.run(
+            `MATCH (start:Developer), (end:Developer)
+            WHERE toLower(start.username) = toLower($username) 
+            AND toLower(end.username) = 'torvalds'
+            MATCH path = shortestPath((start)-[:CONTRIBUTED_TO*..50]-(end))
+            RETURN path`,
+            { username }
+        );
+
+        if (result.records.length === 0) {
+            return null;
+        }
+
+        return result.records[0].get('path') as Path;
+    } finally {
+        await session.close();
     }
 }
 
