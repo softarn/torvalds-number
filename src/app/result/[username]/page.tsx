@@ -119,7 +119,8 @@ export default function ResultPage() {
                 <div className="flex justify-center gap-4">
                     <button
                         onClick={() => {
-                            const text = `My Torvalds Number is ${result.number}! How close are you to Linus Torvalds?`;
+                            const url = typeof window !== 'undefined' ? window.location.href : '';
+                            const text = `Check out my Torvalds Number! ${url}`;
                             navigator.clipboard.writeText(text);
                         }}
                         className="px-4 py-2 rounded-lg bg-gray-800 text-gray-300 hover:bg-gray-700 transition-colors text-sm"
