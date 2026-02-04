@@ -30,3 +30,7 @@ export interface CalculateResponse {
 export interface CalculateErrorResponse {
     error: string;
 }
+
+export interface AutocompleteResponse {
+    suggestions: string[];
+}

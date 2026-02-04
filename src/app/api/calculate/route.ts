@@ -18,11 +18,13 @@ export async function POST(request: Request): Promise<NextResponse<CalculateResp
         const session = driver.session();
 
         try {
-            // Query for shortest path treating the graph as undirected
+            // Query for shortest path treating the graph as undirected with case-insensitive matching
             const result = await session.run(
-                `MATCH (start:Developer {username: $username}), (end:Developer {username: 'torvalds'})
-         MATCH path = shortestPath((start)-[:CONTRIBUTED_TO*]-(end))
-         RETURN path`,
+                `MATCH (start:Developer), (end:Developer)
+                WHERE toLower(start.username) = toLower($username) 
+                AND toLower(end.username) = 'torvalds'
+                MATCH path = shortestPath((start)-[:CONTRIBUTED_TO*..50]-(end))
+                RETURN path`,
                 { username: normalizedUsername }
             );
 
