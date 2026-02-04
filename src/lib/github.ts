@@ -114,7 +114,7 @@ export async function getUserRepos(username: string, limit: number = 20, minStar
                 }
                 repositoriesContributedTo(
                     first: $first
-                    contributionTypes: [COMMIT]
+                    contributionTypes: [COMMIT, PULL_REQUEST]
                     orderBy: {field: STARGAZERS, direction: DESC}
                 ) {
                     nodes {
@@ -212,6 +212,17 @@ export async function getAllTimeContributedRepos(username: string, minStars: num
                                 totalCount
                             }
                         }
+                        pullRequestContributionsByRepository(maxRepositories: 100) {
+                            repository {
+                                databaseId
+                                nameWithOwner
+                                stargazerCount
+                                primaryLanguage { name }
+                            }
+                            contributions {
+                                totalCount
+                            }
+                        }
                     }
                 }
             }
@@ -231,6 +242,7 @@ export async function getAllTimeContributedRepos(username: string, minStars: num
             user: {
                 contributionsCollection: {
                     commitContributionsByRepository: RepoContribution[];
+                    pullRequestContributionsByRepository: RepoContribution[];
                 };
             } | null;
         }
@@ -238,12 +250,23 @@ export async function getAllTimeContributedRepos(username: string, minStars: num
         const result: QueryResult | null = await graphql<QueryResult>(query, { login: username, from, to });
         if (!result?.user?.contributionsCollection) continue;
 
-        const yearRepos = result.user.contributionsCollection.commitContributionsByRepository;
-        console.log(`[GitHub]   ${year}: ${yearRepos.length} repos`);
+        const collection = result.user.contributionsCollection;
+        const commitRepos = collection.commitContributionsByRepository || [];
+        const prRepos = collection.pullRequestContributionsByRepository || [];
+
+        const yearRepos = [...commitRepos, ...prRepos];
+
+        console.log(`[GitHub]   ${year}: ${commitRepos.length} commit repos, ${prRepos.length} PR repos`);
 
         for (const contrib of yearRepos) {
             const repo = contrib.repository;
-            if (!repo || seenIds.has(repo.databaseId)) continue;
+            if (!repo) continue;
+
+            // If we already saw this repo, we might want to update contribution count?
+            // But ingestUser only takes one number.
+            // For now, let's just ensure it's in the list.
+            if (seenIds.has(repo.databaseId)) continue;
+
             if (repo.stargazerCount >= minStars) {
                 seenIds.add(repo.databaseId);
                 repos.push({
@@ -251,13 +274,13 @@ export async function getAllTimeContributedRepos(username: string, minStars: num
                     name: repo.nameWithOwner,
                     stars: repo.stargazerCount,
                     language: repo.primaryLanguage?.name ?? null,
-                    commits: contrib.contributions.totalCount,
+                    commits: contrib.contributions.totalCount, // This might be commits OR PRs count.
                 });
             }
         }
 
         // Stop if we've gone too many years without finding anything new
-        if (yearRepos.length === 0 && year < currentYear - 3) {
+        if (commitRepos.length === 0 && prRepos.length === 0 && year < currentYear - 3) {
             console.log(`[GitHub]   Stopping - no contributions for ${year}`);
             break;
         }
