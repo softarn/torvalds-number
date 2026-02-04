@@ -4,13 +4,12 @@
 The **Thorvalds Number** is a web application that calculates the "degrees of separation" between any GitHub user and **Linus Torvalds** based on shared repository contributions.
 
 ## 2. Technical Stack
-- **Database:** Neo4j (Graph Database).
+- **Database:** Neo4j (Graph Database), hosted on Neo4j Aura or self-hosted.
 - **Data Ingestion:** Python scripts (GitHub REST/GraphQL API).
-- **Backend:** Java 21 (Spring Boot).
-    - Use **Records** for DTOs.
-    - If Database Entities cannot be mapped to Records by the chosen library, use standard Classes.
-    - **Strictly no Lombok.**
-- **Frontend:** **HTMX** with a Java-based template engine (e.g., Thymeleaf).
+- **Web Application:** **Next.js** (TypeScript) deployed to **Vercel**.
+    - Uses the App Router (`/app` directory).
+    - API Routes handle Neo4j queries via the `neo4j-driver` package.
+    - Server-side rendering (SSR) for optimal performance and SEO.
 
 ## 3. Data Model
 The graph is designed to find paths between developers via their shared work.
@@ -43,7 +42,6 @@ The graph is designed to find paths between developers via their shared work.
 ### Don'ts
 - **No Micro-Crawls:** Only search against the existing 200k node database.
 - **No Updates:** Relationship "facts" are snapshots; do not spend API quota updating existing edges.
-- **No Lombok:** Maintain standard Java POJOs/Classes or Records.
 - **No Complex Queries:** Stick to standard shortest-path algorithms.
 
 ## 5. Components
@@ -52,18 +50,77 @@ The graph is designed to find paths between developers via their shared work.
 - **Responsibility:** Populate the graph using BFS and star-filtering.
 - **ID Management:** Use GitHub's internal unique ID to handle renames or multiple aliases.
 
-### B. Java Backend
-- **Services:**
-    - `GraphService`: Executes undirected pathfinding. Returns a DTO containing the ordered list of nodes and relationships.
-- **Endpoints:**
-    - `POST /calculate`: Receives a username, finds the `github_id`, and returns the HTML fragment for the path.
+### B. Next.js Application
 
-### C. HTMX Logic
-- **Interactions:** Uses `hx-post` for searches. Iterates over the path to render the developer-repo-developer chain.
+#### API Routes (`/app/api/`)
+- **`POST /api/calculate`**: Receives a username, queries Neo4j for the shortest path, returns JSON with path data.
+- **`GET /api/health`**: Health check endpoint.
 
-## 6. Implementation Plan
-1. **Infrastructure:** Dockerize Neo4j.
+#### Neo4j Integration (`/lib/neo4j.ts`)
+- Singleton driver instance using `neo4j-driver`.
+- Helper functions for executing Cypher queries.
+- Connection pooling handled by the driver.
+
+#### Pages (`/app/`)
+- **`/`**: Home page with search input for GitHub username.
+- **`/result/[username]`**: Dynamic route displaying the path visualization.
+
+#### Components (`/components/`)
+- **`SearchForm`**: Input field with submit handling.
+- **`PathVisualization`**: Renders the developer-repo-developer chain.
+- **`DeveloperNode`**: Displays developer information with GitHub avatar.
+- **`RepositoryNode`**: Displays repository information with contribution facts.
+- **`NumberDisplay`**: Shows the calculated Thorvalds Number prominently.
+
+#### Styling
+- Use **Tailwind CSS** or **CSS Modules** for styling.
+- Dark mode support recommended.
+
+## 6. Environment Variables
+
+### Vercel Environment Variables
+```
+NEO4J_URI=neo4j+s://your-instance.databases.neo4j.io
+NEO4J_USER=neo4j
+NEO4J_PASSWORD=your-password
+```
+
+### Local Development (`.env.local`)
+Same variables as above for local development with `npm run dev`.
+
+## 7. Deployment Architecture
+- **Web Application:** Single Next.js project deployed to Vercel.
+- **Database:** Neo4j Aura (managed) or self-hosted Neo4j with public access.
+- **Ingestion:** Python scripts run locally or via CI/CD to populate the database.
+
+```
+┌─────────────────────────────────────────────────┐
+│                    Vercel                       │
+│  ┌───────────────┐    ┌───────────────────┐    │
+│  │   Next.js     │    │   API Routes      │    │
+│  │   Frontend    │───▶│   (Serverless)    │    │
+│  └───────────────┘    └─────────┬─────────┘    │
+└─────────────────────────────────┼───────────────┘
+                                  │
+                                  ▼
+                         ┌────────────────┐
+                         │   Neo4j Aura   │
+                         │   (Database)   │
+                         └────────────────┘
+                                  ▲
+                                  │
+                         ┌────────────────┐
+                         │ Python Script  │
+                         │  (Ingestion)   │
+                         └────────────────┘
+```
+
+## 8. Implementation Plan
+1. **Infrastructure:** Set up Neo4j Aura instance (or Dockerize Neo4j for local dev).
 2. **Scripting:** Develop `ingest.py` with BFS, 1k star filter, and 200k node limit.
-3. **Core:** Initialize Java Spring Boot project.
-4. **Integration:** Connect Java to Neo4j; implement undirected `shortestPath` query.
-5. **Hypermedia:** Build the HTMX interface for path visualization.
+3. **Next.js Setup:** Initialize Next.js project with TypeScript and App Router.
+4. **Neo4j Integration:** Create driver singleton and query helpers.
+5. **API Routes:** Implement `/api/calculate` with undirected `shortestPath` query.
+6. **UI Development:** Build search interface and path visualization components.
+7. **Styling:** Apply modern, responsive design with dark mode.
+8. **Deployment:** Deploy to Vercel, configure environment variables.
